@@ -12,9 +12,13 @@ import {
 
 interface LanguageSelectorProps {
   variant?: 'minimal' | 'full';
+  className?: string;
 }
 
-const LanguageSelector: React.FC<LanguageSelectorProps> = ({ variant = 'full' }) => {
+const LanguageSelector: React.FC<LanguageSelectorProps> = ({ 
+  variant = 'full',
+  className = ''
+}) => {
   const { currentLanguage, setLanguage, availableLanguages } = useLanguage();
   
   const currentLanguageName = availableLanguages.find(
@@ -27,7 +31,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({ variant = 'full' })
         <Button 
           variant={variant === 'minimal' ? 'ghost' : 'outline'} 
           size={variant === 'minimal' ? 'icon' : 'sm'}
-          className={variant === 'minimal' ? 'rounded-full h-8 w-8 p-0' : ''}
+          className={`${variant === 'minimal' ? 'rounded-full h-8 w-8 p-0' : ''} ${className}`}
         >
           <Globe size={variant === 'minimal' ? 16 : 14} className={variant === 'minimal' ? '' : 'mr-2'} />
           {variant === 'full' && <span>{currentLanguageName}</span>}

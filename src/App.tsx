@@ -10,6 +10,7 @@ import Symptoms from "./pages/Symptoms";
 import About from "./pages/About";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
+import LanguageSelector from "@/components/language/LanguageSelector";
 
 const App = () => {
   // Create a new QueryClient instance inside the component
@@ -21,6 +22,9 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
+          <div className="fixed bottom-4 right-4 z-50">
+            <LanguageSelector />
+          </div>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
