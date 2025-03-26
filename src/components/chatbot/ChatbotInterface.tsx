@@ -1,10 +1,11 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X, MessageSquare, AlertTriangle } from 'lucide-react';
+import { Send, X, MessageSquare, AlertTriangle, Mic, Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import ChatbotMessage from './ChatbotMessage';
+import { initSpeechRecognition, speakText, isSpeaking, stopSpeaking } from '@/utils/voiceUtils';
 
 interface Message {
   id: string;
@@ -25,8 +26,58 @@ const ChatbotInterface: React.FC = () => {
     },
   ]);
   const [inputValue, setInputValue] = useState('');
+  const [isListening, setIsListening] = useState(false);
+  const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
+  const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Initialize speech recognition
+  useEffect(() => {
+    const recognitionInstance = initSpeechRecognition();
+    setRecognition(recognitionInstance);
+    
+    if (recognitionInstance) {
+      recognitionInstance.onresult = (event) => {
+        const transcript = event.results[0][0].transcript;
+        setInputValue(transcript);
+        // Automatically send message after voice input
+        setTimeout(() => {
+          handleSendMessage(new Event('submit') as unknown as React.FormEvent);
+        }, 500);
+      };
+      
+      recognitionInstance.onend = () => {
+        setIsListening(false);
+      };
+      
+      recognitionInstance.onerror = (event) => {
+        console.error('Speech recognition error', event.error);
+        setIsListening(false);
+        if (event.error === 'not-allowed') {
+          toast.error("Microphone access denied", {
+            description: "Please allow microphone access to use voice input.",
+          });
+        }
+      };
+    }
+    
+    // Initialize voices for speech synthesis
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.onvoiceschanged = () => {
+        window.speechSynthesis.getVoices();
+      };
+    }
+    
+    return () => {
+      if (recognitionInstance) {
+        recognitionInstance.abort();
+      }
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if (isOpen && messagesEndRef.current) {
@@ -36,10 +87,47 @@ const ChatbotInterface: React.FC = () => {
     if (isOpen && inputRef.current) {
       inputRef.current.focus();
     }
-  }, [isOpen, messages]);
+    
+    // Speak the last bot message when messages change
+    const lastMessage = messages[messages.length - 1];
+    if (isVoiceEnabled && lastMessage && !lastMessage.isUser && isOpen) {
+      speakText(lastMessage.content);
+    }
+  }, [isOpen, messages, isVoiceEnabled]);
 
   const toggleChatbot = () => {
     setIsOpen(!isOpen);
+    if (!isOpen) {
+      stopSpeaking();
+    }
+  };
+  
+  const toggleVoiceInput = () => {
+    if (!recognition) {
+      toast.error("Speech recognition not supported", {
+        description: "Your browser doesn't support voice input functionality.",
+      });
+      return;
+    }
+    
+    if (isListening) {
+      recognition.abort();
+      setIsListening(false);
+    } else {
+      recognition.start();
+      setIsListening(true);
+      setInputValue('');
+      toast.info("Listening...", {
+        description: "Please speak clearly to input your symptoms.",
+      });
+    }
+  };
+  
+  const toggleVoiceOutput = () => {
+    setIsVoiceEnabled(!isVoiceEnabled);
+    if (isVoiceEnabled) {
+      stopSpeaking();
+    }
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -103,6 +191,8 @@ const ChatbotInterface: React.FC = () => {
       content = "Hello! How can I assist you with your health today?";
     } else if (lowerCaseMessage.includes('thank')) {
       content = "You're welcome! Is there anything else I can help you with?";
+    } else if (lowerCaseMessage.includes('hospital') || lowerCaseMessage.includes('doctor') || lowerCaseMessage.includes('emergency')) {
+      content = "If you need to find a healthcare provider, I can help you locate nearby hospitals or doctors. Would you like me to search for medical facilities in your area?";
     } else {
       content = "I understand you're looking for health information. Could you provide more details about your question or concern?";
     }
@@ -123,14 +213,25 @@ const ChatbotInterface: React.FC = () => {
         {/* Header */}
         <div className="health-gradient p-4 flex justify-between items-center">
           <h3 className="text-white font-medium">Health Assistant</h3>
-          <Button 
-            variant="ghost" 
-            size="icon" 
-            className="h-8 w-8 text-white hover:bg-health-600/20" 
-            onClick={toggleChatbot}
-          >
-            <X size={18} />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-white hover:bg-health-600/20" 
+              onClick={toggleVoiceOutput}
+              title={isVoiceEnabled ? "Disable voice output" : "Enable voice output"}
+            >
+              {isVoiceEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />}
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-white hover:bg-health-600/20" 
+              onClick={toggleChatbot}
+            >
+              <X size={18} />
+            </Button>
+          </div>
         </div>
         
         {/* Messages Container */}
@@ -160,7 +261,16 @@ const ChatbotInterface: React.FC = () => {
               className="flex-1 px-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-health-400 focus:border-transparent text-sm"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
+              disabled={isListening}
             />
+            <Button 
+              type="button" 
+              size="icon" 
+              className={`h-10 w-10 rounded-full ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} transition-colors`}
+              onClick={toggleVoiceInput}
+            >
+              <Mic size={18} className="text-white" />
+            </Button>
             <Button 
               type="submit" 
               size="icon" 
