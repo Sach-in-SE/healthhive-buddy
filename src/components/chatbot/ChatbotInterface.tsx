@@ -1,7 +1,9 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X, MessageSquare } from 'lucide-react';
+import { Send, X, MessageSquare, AlertTriangle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { toast } from 'sonner';
 import ChatbotMessage from './ChatbotMessage';
 
 interface Message {
@@ -9,6 +11,7 @@ interface Message {
   content: string;
   isUser: boolean;
   timestamp: Date;
+  urgency?: 'low' | 'medium' | 'high';
 }
 
 const ChatbotInterface: React.FC = () => {
@@ -56,30 +59,61 @@ const ChatbotInterface: React.FC = () => {
     
     // Simulate AI response after a short delay
     setTimeout(() => {
-      const botResponse: Message = {
-        id: (Date.now() + 1).toString(),
-        content: getAIResponse(inputValue.trim()),
-        isUser: false,
-        timestamp: new Date(),
-      };
-      
+      const botResponse = getAIResponse(inputValue.trim());
       setMessages((prev) => [...prev, botResponse]);
+      
+      // If the response has high urgency, show a toast notification
+      if (botResponse.urgency === 'high') {
+        toast.error("Urgent medical attention may be required", {
+          description: "Please contact a healthcare provider immediately.",
+          duration: 8000,
+        });
+      }
     }, 1000);
   };
 
-  const getAIResponse = (userMessage: string): string => {
-    // Simplified response logic - this would be replaced with actual API calls
+  const getAIResponse = (userMessage: string): Message => {
+    // Simplified response logic with severity assessment
     const lowerCaseMessage = userMessage.toLowerCase();
+    let content = '';
+    let urgency: 'low' | 'medium' | 'high' | undefined = undefined;
     
-    if (lowerCaseMessage.includes('symptom') || lowerCaseMessage.includes('sick') || lowerCaseMessage.includes('pain')) {
-      return "I can help you check your symptoms. Could you please tell me more about what you're experiencing?";
+    // Check for urgent symptoms
+    const urgentSymptoms = ['chest pain', 'difficulty breathing', 'unconscious', 'seizure', 'stroke', 'severe bleeding', 'poisoning'];
+    const moderateSymptoms = ['fever', 'persistent pain', 'vomiting', 'diarrhea', 'dehydration', 'infection'];
+    const mildSymptoms = ['headache', 'cold', 'cough', 'sore throat', 'runny nose', 'mild pain'];
+    
+    // Check if message contains any urgent symptoms
+    const hasUrgentSymptoms = urgentSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
+    const hasModerateSymptoms = moderateSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
+    const hasMildSymptoms = mildSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
+    
+    if (hasUrgentSymptoms) {
+      urgency = 'high';
+      content = "I'm detecting symptoms that may require immediate medical attention. Please contact emergency services or go to the nearest emergency room immediately. Would you like me to help find the nearest hospital?";
+    } else if (hasModerateSymptoms) {
+      urgency = 'medium';
+      content = "The symptoms you've described may need medical attention. Consider consulting with a healthcare provider soon. Would you like more information about your symptoms?";
+    } else if (hasMildSymptoms) {
+      urgency = 'low';
+      content = "Based on what you've shared, your symptoms appear to be mild. Rest and self-care may help, but monitor your symptoms for changes. Would you like some self-care suggestions?";
+    } else if (lowerCaseMessage.includes('symptom') || lowerCaseMessage.includes('sick') || lowerCaseMessage.includes('pain')) {
+      content = "I can help you check your symptoms. Could you please tell me more about what you're experiencing?";
     } else if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hey')) {
-      return "Hello! How can I assist you with your health today?";
+      content = "Hello! How can I assist you with your health today?";
     } else if (lowerCaseMessage.includes('thank')) {
-      return "You're welcome! Is there anything else I can help you with?";
+      content = "You're welcome! Is there anything else I can help you with?";
     } else {
-      return "I understand you're looking for health information. Could you provide more details about your question or concern?";
+      content = "I understand you're looking for health information. Could you provide more details about your question or concern?";
     }
+    
+    return {
+      id: (Date.now() + 1).toString(),
+      content,
+      isUser: false,
+      timestamp: new Date(),
+      urgency
+    };
   };
 
   return (
@@ -107,6 +141,7 @@ const ChatbotInterface: React.FC = () => {
               content={message.content}
               isUser={message.isUser}
               timestamp={message.timestamp}
+              urgency={message.urgency}
             />
           ))}
           <div ref={messagesEndRef} />
@@ -121,7 +156,7 @@ const ChatbotInterface: React.FC = () => {
             <input
               ref={inputRef}
               type="text"
-              placeholder="Type your message..."
+              placeholder="Type your symptoms or questions..."
               className="flex-1 px-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-health-400 focus:border-transparent text-sm"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
