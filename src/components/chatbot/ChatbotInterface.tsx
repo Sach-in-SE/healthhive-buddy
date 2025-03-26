@@ -1,11 +1,20 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X, MessageSquare, AlertTriangle, Mic, Volume2, VolumeX } from 'lucide-react';
+import { Send, X, MessageSquare, AlertTriangle, Mic, Volume2, VolumeX, Globe, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import ChatbotMessage from './ChatbotMessage';
 import { initSpeechRecognition, speakText, isSpeaking, stopSpeaking } from '@/utils/voiceUtils';
+import HospitalFinder from '@/components/hospitals/HospitalFinder';
+import LanguageSelector from '@/components/language/LanguageSelector';
+import { useLanguage } from '@/contexts/LanguageContext';
+import { 
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 
 interface Message {
   id: string;
@@ -13,26 +22,36 @@ interface Message {
   isUser: boolean;
   timestamp: Date;
   urgency?: 'low' | 'medium' | 'high';
+  showHospitalFinder?: boolean;
+  symptoms?: string[];
 }
 
 const ChatbotInterface: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: '1',
-      content: "Hello! I'm your Health Assistant. How can I help you today?",
-      isUser: false,
-      timestamp: new Date(),
-    },
-  ]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isListening, setIsListening] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { translate, currentLanguage } = useLanguage();
 
-  // Initialize speech recognition
+  useEffect(() => {
+    const setWelcomeMessage = async () => {
+      const welcomeContent = await translate("Hello! I'm your Health Assistant. How can I help you today?");
+      
+      setMessages([{
+        id: '1',
+        content: welcomeContent,
+        isUser: false,
+        timestamp: new Date(),
+      }]);
+    };
+    
+    setWelcomeMessage();
+  }, [currentLanguage, translate]);
+
   useEffect(() => {
     const recognitionInstance = initSpeechRecognition();
     setRecognition(recognitionInstance);
@@ -41,7 +60,6 @@ const ChatbotInterface: React.FC = () => {
       recognitionInstance.onresult = (event) => {
         const transcript = event.results[0][0].transcript;
         setInputValue(transcript);
-        // Automatically send message after voice input
         setTimeout(() => {
           handleSendMessage(new Event('submit') as unknown as React.FormEvent);
         }, 500);
@@ -62,7 +80,6 @@ const ChatbotInterface: React.FC = () => {
       };
     }
     
-    // Initialize voices for speech synthesis
     if ('speechSynthesis' in window) {
       window.speechSynthesis.onvoiceschanged = () => {
         window.speechSynthesis.getVoices();
@@ -88,7 +105,6 @@ const ChatbotInterface: React.FC = () => {
       inputRef.current.focus();
     }
     
-    // Speak the last bot message when messages change
     const lastMessage = messages[messages.length - 1];
     if (isVoiceEnabled && lastMessage && !lastMessage.isUser && isOpen) {
       speakText(lastMessage.content);
@@ -130,27 +146,41 @@ const ChatbotInterface: React.FC = () => {
     }
   };
 
-  const handleSendMessage = (e: React.FormEvent) => {
+  const extractSymptoms = (message: string): string[] => {
+    const symptomKeywords = [
+      'pain', 'ache', 'fever', 'cough', 'headache', 'nausea', 
+      'dizzy', 'tired', 'fatigue', 'weakness', 'rash', 'sore throat',
+      'chest', 'breathing', 'stomach', 'vomit', 'diarrhea', 'blood pressure',
+      'joint', 'muscle', 'back', 'neck', 'migraine', 'cold', 'flu'
+    ];
+    
+    return symptomKeywords.filter(symptom => 
+      message.toLowerCase().includes(symptom)
+    );
+  };
+
+  const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!inputValue.trim()) return;
+    
+    const extractedSymptoms = extractSymptoms(inputValue);
     
     const newUserMessage: Message = {
       id: Date.now().toString(),
       content: inputValue.trim(),
       isUser: true,
       timestamp: new Date(),
+      symptoms: extractedSymptoms
     };
     
     setMessages((prev) => [...prev, newUserMessage]);
     setInputValue('');
     
-    // Simulate AI response after a short delay
-    setTimeout(() => {
-      const botResponse = getAIResponse(inputValue.trim());
+    setTimeout(async () => {
+      const botResponse = await getAIResponse(inputValue.trim(), extractedSymptoms);
       setMessages((prev) => [...prev, botResponse]);
       
-      // If the response has high urgency, show a toast notification
       if (botResponse.urgency === 'high') {
         toast.error("Urgent medical attention may be required", {
           description: "Please contact a healthcare provider immediately.",
@@ -160,41 +190,57 @@ const ChatbotInterface: React.FC = () => {
     }, 1000);
   };
 
-  const getAIResponse = (userMessage: string): Message => {
-    // Simplified response logic with severity assessment
+  const getAIResponse = async (userMessage: string, extractedSymptoms: string[]): Promise<Message> => {
     const lowerCaseMessage = userMessage.toLowerCase();
     let content = '';
     let urgency: 'low' | 'medium' | 'high' | undefined = undefined;
+    let showHospitalFinder = false;
     
-    // Check for urgent symptoms
     const urgentSymptoms = ['chest pain', 'difficulty breathing', 'unconscious', 'seizure', 'stroke', 'severe bleeding', 'poisoning'];
     const moderateSymptoms = ['fever', 'persistent pain', 'vomiting', 'diarrhea', 'dehydration', 'infection'];
     const mildSymptoms = ['headache', 'cold', 'cough', 'sore throat', 'runny nose', 'mild pain'];
     
-    // Check if message contains any urgent symptoms
+    const isAskingForHospital = 
+      lowerCaseMessage.includes('hospital') || 
+      lowerCaseMessage.includes('doctor') || 
+      lowerCaseMessage.includes('emergency') ||
+      lowerCaseMessage.includes('clinic') ||
+      lowerCaseMessage.includes('medical center');
+    
     const hasUrgentSymptoms = urgentSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
     const hasModerateSymptoms = moderateSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
     const hasMildSymptoms = mildSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
     
-    if (hasUrgentSymptoms) {
+    if (hasUrgentSymptoms || isAskingForHospital) {
       urgency = 'high';
-      content = "I'm detecting symptoms that may require immediate medical attention. Please contact emergency services or go to the nearest emergency room immediately. Would you like me to help find the nearest hospital?";
+      const baseContent = "I'm detecting symptoms that may require immediate medical attention. Please contact emergency services or go to the nearest emergency room immediately.";
+      content = await translate(baseContent);
+      showHospitalFinder = true;
     } else if (hasModerateSymptoms) {
       urgency = 'medium';
-      content = "The symptoms you've described may need medical attention. Consider consulting with a healthcare provider soon. Would you like more information about your symptoms?";
+      const baseContent = "The symptoms you've described may need medical attention. Consider consulting with a healthcare provider soon. Would you like more information about your symptoms?";
+      content = await translate(baseContent);
+      showHospitalFinder = lowerCaseMessage.includes('where') || lowerCaseMessage.includes('find');
     } else if (hasMildSymptoms) {
       urgency = 'low';
-      content = "Based on what you've shared, your symptoms appear to be mild. Rest and self-care may help, but monitor your symptoms for changes. Would you like some self-care suggestions?";
+      const baseContent = "Based on what you've shared, your symptoms appear to be mild. Rest and self-care may help, but monitor your symptoms for changes. Would you like some self-care suggestions?";
+      content = await translate(baseContent);
     } else if (lowerCaseMessage.includes('symptom') || lowerCaseMessage.includes('sick') || lowerCaseMessage.includes('pain')) {
-      content = "I can help you check your symptoms. Could you please tell me more about what you're experiencing?";
+      const baseContent = "I can help you check your symptoms. Could you please tell me more about what you're experiencing?";
+      content = await translate(baseContent);
     } else if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hey')) {
-      content = "Hello! How can I assist you with your health today?";
+      const baseContent = "Hello! How can I assist you with your health today?";
+      content = await translate(baseContent);
     } else if (lowerCaseMessage.includes('thank')) {
-      content = "You're welcome! Is there anything else I can help you with?";
+      const baseContent = "You're welcome! Is there anything else I can help you with?";
+      content = await translate(baseContent);
     } else if (lowerCaseMessage.includes('hospital') || lowerCaseMessage.includes('doctor') || lowerCaseMessage.includes('emergency')) {
-      content = "If you need to find a healthcare provider, I can help you locate nearby hospitals or doctors. Would you like me to search for medical facilities in your area?";
+      const baseContent = "I can help you locate nearby hospitals or doctors. Would you like me to search for medical facilities in your area?";
+      content = await translate(baseContent);
+      showHospitalFinder = true;
     } else {
-      content = "I understand you're looking for health information. Could you provide more details about your question or concern?";
+      const baseContent = "I understand you're looking for health information. Could you provide more details about your question or concern?";
+      content = await translate(baseContent);
     }
     
     return {
@@ -202,18 +248,19 @@ const ChatbotInterface: React.FC = () => {
       content,
       isUser: false,
       timestamp: new Date(),
-      urgency
+      urgency,
+      showHospitalFinder,
+      symptoms: extractedSymptoms
     };
   };
 
   return (
     <div className="chatbot-container">
-      {/* Chatbot Window */}
       <div className={`chatbot-window ${isOpen ? 'visible' : 'hidden'}`}>
-        {/* Header */}
         <div className="health-gradient p-4 flex justify-between items-center">
           <h3 className="text-white font-medium">Health Assistant</h3>
           <div className="flex items-center gap-2">
+            <LanguageSelector variant="minimal" />
             <Button 
               variant="ghost" 
               size="icon" 
@@ -234,21 +281,29 @@ const ChatbotInterface: React.FC = () => {
           </div>
         </div>
         
-        {/* Messages Container */}
         <div className="h-[calc(100%-128px)] overflow-y-auto p-4">
           {messages.map((message) => (
-            <ChatbotMessage
-              key={message.id}
-              content={message.content}
-              isUser={message.isUser}
-              timestamp={message.timestamp}
-              urgency={message.urgency}
-            />
+            <React.Fragment key={message.id}>
+              <ChatbotMessage
+                content={message.content}
+                isUser={message.isUser}
+                timestamp={message.timestamp}
+                urgency={message.urgency}
+              />
+              
+              {!message.isUser && message.showHospitalFinder && (
+                <div className="mb-4 max-w-[85%] mr-auto">
+                  <HospitalFinder 
+                    symptoms={message.symptoms} 
+                    urgency={message.urgency}
+                  />
+                </div>
+              )}
+            </React.Fragment>
           ))}
           <div ref={messagesEndRef} />
         </div>
         
-        {/* Input Area */}
         <form 
           onSubmit={handleSendMessage}
           className="border-t border-gray-100 p-4 bg-white/80 backdrop-blur-sm"
@@ -266,7 +321,7 @@ const ChatbotInterface: React.FC = () => {
             <Button 
               type="button" 
               size="icon" 
-              className={`h-10 w-10 rounded-full ${isListening ? 'bg-red-500 hover:bg-red-600' : 'bg-blue-500 hover:bg-blue-600'} transition-colors`}
+              className={`h-10 w-10 rounded-full ${isListening ? 'bg-red-500 hover:bg-red-600 pulse-animation' : 'bg-blue-500 hover:bg-blue-600'} transition-colors`}
               onClick={toggleVoiceInput}
             >
               <Mic size={18} className="text-white" />
@@ -283,13 +338,29 @@ const ChatbotInterface: React.FC = () => {
         </form>
       </div>
       
-      {/* Trigger Button */}
       <div 
         className="chatbot-trigger health-gradient ml-auto"
         onClick={toggleChatbot}
       >
         <MessageSquare size={22} />
       </div>
+      
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            className="fixed bottom-8 left-8 health-gradient rounded-full h-12 w-12 p-0 flex items-center justify-center shadow-highlight"
+            title="Find nearby hospitals"
+          >
+            <MapPin size={20} />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Find Nearby Medical Facilities</DialogTitle>
+          </DialogHeader>
+          <HospitalFinder />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
