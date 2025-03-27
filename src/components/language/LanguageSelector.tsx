@@ -19,11 +19,13 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   variant = 'full',
   className = ''
 }) => {
-  const { currentLanguage, setLanguage, availableLanguages } = useLanguage();
+  const { currentLanguage, setLanguage, availableLanguages, isRTL } = useLanguage();
   
-  const currentLanguageName = availableLanguages.find(
+  const currentLanguageInfo = availableLanguages.find(
     lang => lang.code === currentLanguage
-  )?.name || 'English';
+  );
+  
+  const currentLanguageName = currentLanguageInfo?.name || 'English';
 
   return (
     <DropdownMenu>
@@ -34,21 +36,31 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           className={`${variant === 'minimal' ? 'rounded-full h-8 w-8 p-0' : ''} ${className}`}
         >
           <Globe size={variant === 'minimal' ? 16 : 14} className={variant === 'minimal' ? '' : 'mr-2'} />
-          {variant === 'full' && <span>{currentLanguageName}</span>}
+          {variant === 'full' && (
+            <>
+              <span>{currentLanguageName}</span>
+              {isRTL && <span className="ml-1 text-xs bg-amber-100 px-1 rounded text-amber-700">RTL</span>}
+            </>
+          )}
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="dropdown-align-right">
         {availableLanguages.map((language) => (
           <DropdownMenuItem
             key={language.code}
             onClick={() => setLanguage(language.code)}
-            className={`cursor-pointer ${currentLanguage === language.code ? 'bg-blue-50' : ''}`}
+            className={`cursor-pointer flex justify-between ${currentLanguage === language.code ? 'bg-blue-50' : ''}`}
           >
-            {language.name}
-            {currentLanguage === language.code && (
-              <span className="ml-2 text-blue-600">✓</span>
-            )}
+            <span>{language.name}</span>
+            <div className="flex items-center">
+              {language.isRTL && (
+                <span className="mr-2 text-xs bg-amber-100 px-1 rounded text-amber-700">RTL</span>
+              )}
+              {currentLanguage === language.code && (
+                <span className="text-blue-600">✓</span>
+              )}
+            </div>
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>
