@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Search, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, ChevronRight, Loader2, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/components/ui/use-toast';
 import { useLanguage } from '@/contexts/LanguageContext';
@@ -12,6 +11,14 @@ import {
   SymptomateSeverity,
   SymptomateCondition
 } from '@/services/symptomate-api';
+import { getDietRecommendations, DietRecommendation } from '@/services/diet-recommendation';
+import CompactDietRecommendation from '@/components/diet/CompactDietRecommendation';
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
 
 interface SelectedSymptom {
   id: string;
@@ -32,13 +39,13 @@ const SymptomCheck: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [triageLevel, setTriageLevel] = useState<'emergency' | 'consultation' | 'self_care' | null>(null);
   const [triageDescription, setTriageDescription] = useState<string | null>(null);
+  const [dietRecommendations, setDietRecommendations] = useState<DietRecommendation[]>([]);
   
-  // Convert language code for Symptomate API (e.g., 'en' to 'en-gb')
   const getLanguageForApi = (langCode: string) => {
     const languageMap: Record<string, string> = {
       'en': 'en-gb',
       'es': 'es-es',
-      'hi': 'en-gb' // Hindi not supported, fallback to English
+      'hi': 'en-gb'
     };
     return languageMap[langCode] || 'en-gb';
   };
@@ -104,10 +111,9 @@ const SymptomCheck: React.FC = () => {
     
     setIsAnalyzing(true);
     setResults(null);
+    setDietRecommendations([]);
     
     try {
-      // For demo purposes, we'll use a fixed user profile
-      // In a real app, we would get this from user input or profile
       const request = {
         sex: 'male' as const,
         age: 35,
@@ -125,6 +131,11 @@ const SymptomCheck: React.FC = () => {
       setResults(response.conditions);
       setTriageLevel(response.triage?.level || null);
       setTriageDescription(response.triage?.description || null);
+      
+      if (response.conditions && response.conditions.length > 0) {
+        const diets = getDietRecommendations(response.conditions);
+        setDietRecommendations(diets);
+      }
     } catch (error) {
       console.error('Error analyzing symptoms:', error);
       toast({
@@ -185,7 +196,6 @@ const SymptomCheck: React.FC = () => {
           <div className="glass-panel p-6 rounded-2xl mb-8">
             <h3 className="text-xl font-semibold mb-6">Select your symptoms</h3>
             
-            {/* Search input */}
             <div className="relative mb-6">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search size={18} className="text-gray-400" />
@@ -199,7 +209,6 @@ const SymptomCheck: React.FC = () => {
               />
             </div>
             
-            {/* Search results */}
             {searchTerm && (
               <div className="mb-6 max-h-60 overflow-y-auto rounded-xl border border-gray-100">
                 {filteredSymptoms.length > 0 ? (
@@ -221,7 +230,6 @@ const SymptomCheck: React.FC = () => {
               </div>
             )}
             
-            {/* Selected symptoms */}
             <div>
               <h4 className="font-medium mb-3 text-sm text-gray-600">Selected symptoms:</h4>
               {selectedSymptoms.length > 0 ? (
@@ -326,6 +334,36 @@ const SymptomCheck: React.FC = () => {
               </div>
             ))}
           </div>
+          
+          {dietRecommendations.length > 0 && (
+            <div className="mb-12">
+              <Accordion type="single" collapsible className="w-full">
+                <AccordionItem value="diet">
+                  <AccordionTrigger className="flex items-center bg-gradient-to-r from-green-50 to-teal-50 p-4 rounded-t-lg">
+                    <div className="flex items-center text-green-700">
+                      <Utensils className="mr-2 h-5 w-5" />
+                      <h3 className="text-xl font-semibold">Recommended Diet Plan</h3>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="bg-white rounded-b-lg p-4 border border-t-0 border-gray-200">
+                    <p className="mb-4 text-gray-600">
+                      Based on your symptoms, we recommend the following diet plan to help manage your condition.
+                    </p>
+                    <div className="space-y-4">
+                      {dietRecommendations.map((diet, index) => (
+                        <CompactDietRecommendation 
+                          key={index} 
+                          diet={diet} 
+                          detectedConditions={results}
+                          className="border border-gray-200"
+                        />
+                      ))}
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            </div>
+          )}
           
           <div className="text-center">
             <Button 
