@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { LanguageProvider } from "@/contexts/LanguageContext";
 import Index from "./pages/Index";
 import Symptoms from "./pages/Symptoms";
+import Diet from "./pages/Diet";
 import About from "./pages/About";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
@@ -34,6 +35,7 @@ const App = () => {
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/symptoms" element={<Symptoms />} />
+              <Route path="/diet" element={<Diet />} />
               <Route path="/about" element={<About />} />
               <Route path="/community" element={<Community />} />
               <Route path="*" element={<NotFound />} />

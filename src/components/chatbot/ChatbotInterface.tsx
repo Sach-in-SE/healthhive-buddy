@@ -1,6 +1,5 @@
-
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, X, MessageSquare, AlertTriangle, Mic, Volume2, VolumeX, Globe, MapPin } from 'lucide-react';
+import { Send, X, MessageSquare, AlertTriangle, Mic, Volume2, VolumeX, Globe, MapPin, Utensils } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
@@ -12,7 +11,8 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import {
   getAvailableSymptoms,
   analyzeSymptoms,
-  SymptomateSymptom
+  SymptomateSymptom,
+  SymptomateCondition
 } from '@/services/symptomate-api';
 import { 
   Dialog,
@@ -21,6 +21,8 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog';
+import { getDietRecommendations, DietRecommendation } from '@/services/diet-recommendation';
+import CompactDietRecommendation from '@/components/diet/CompactDietRecommendation';
 
 interface Message {
   id: string;
@@ -30,6 +32,8 @@ interface Message {
   urgency?: 'low' | 'medium' | 'high';
   showHospitalFinder?: boolean;
   symptoms?: string[];
+  detectedConditions?: SymptomateCondition[];
+  dietRecommendation?: DietRecommendation;
 }
 
 const ChatbotInterface: React.FC = () => {
@@ -44,7 +48,6 @@ const ChatbotInterface: React.FC = () => {
   const inputRef = useRef<HTMLInputElement>(null);
   const { translate, currentLanguage } = useLanguage();
 
-  // Fetch available symptoms when language changes
   useEffect(() => {
     const fetchSymptoms = async () => {
       try {
@@ -170,7 +173,6 @@ const ChatbotInterface: React.FC = () => {
   };
 
   const extractSymptoms = (message: string): string[] => {
-    // Use the Symptomate API's symptoms for more accurate matching
     if (!availableSymptoms.length) return [];
     
     const lowerCaseMessage = message.toLowerCase();
@@ -215,8 +217,16 @@ const ChatbotInterface: React.FC = () => {
     let content = '';
     let urgency: 'low' | 'medium' | 'high' | undefined = undefined;
     let showHospitalFinder = false;
+    let detectedConditions: SymptomateCondition[] | undefined = undefined;
+    let dietRecommendation: DietRecommendation | undefined = undefined;
     
-    // Improved symptom detection using Symptomate API data
+    const isDietRelated = 
+      lowerCaseMessage.includes('diet') || 
+      lowerCaseMessage.includes('food') || 
+      lowerCaseMessage.includes('nutrition') || 
+      lowerCaseMessage.includes('eat') || 
+      lowerCaseMessage.includes('meal');
+    
     const symptomMatches = availableSymptoms.filter(symptom => 
       lowerCaseMessage.includes(symptom.name.toLowerCase())
     );
@@ -234,33 +244,90 @@ const ChatbotInterface: React.FC = () => {
     const hasUrgentSymptoms = urgentSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
     const hasModerateSymptoms = moderateSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
     
-    // Determine urgency based on symptoms
-    if (hasUrgentSymptoms || isAskingForHospital) {
-      urgency = 'high';
-      const baseContent = "I'm detecting symptoms that may require immediate medical attention. Please contact emergency services or go to the nearest emergency room immediately.";
-      content = await translate(baseContent);
-      showHospitalFinder = true;
-    } else if (hasModerateSymptoms || symptomMatches.length > 0) {
-      urgency = 'medium';
-      const baseContent = "The symptoms you've described may need medical attention. Would you like to use our symptom checker for more specific information?";
-      content = await translate(baseContent);
-      showHospitalFinder = lowerCaseMessage.includes('where') || lowerCaseMessage.includes('find');
-    } else if (lowerCaseMessage.includes('symptom') || lowerCaseMessage.includes('sick') || lowerCaseMessage.includes('pain')) {
-      const baseContent = "I can help you check your symptoms. Could you please tell me more about what you're experiencing?";
-      content = await translate(baseContent);
-    } else if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hey')) {
-      const baseContent = "Hello! How can I assist you with your health today?";
-      content = await translate(baseContent);
-    } else if (lowerCaseMessage.includes('thank')) {
-      const baseContent = "You're welcome! Is there anything else I can help you with?";
-      content = await translate(baseContent);
-    } else if (lowerCaseMessage.includes('hospital') || lowerCaseMessage.includes('doctor') || lowerCaseMessage.includes('emergency')) {
-      const baseContent = "I can help you locate nearby hospitals or doctors. Would you like me to search for medical facilities in your area?";
-      content = await translate(baseContent);
-      showHospitalFinder = true;
-    } else {
-      const baseContent = "I understand you're looking for health information. Could you provide more details about your question or concern?";
-      content = await translate(baseContent);
+    if (extractedSymptoms.length > 0 || symptomMatches.length > 0) {
+      try {
+        const firstSymptom = availableSymptoms.find(s => 
+          extractedSymptoms.includes(s.name) || 
+          symptomMatches.some(match => match.id === s.id)
+        );
+        
+        if (firstSymptom) {
+          const mockRequest = {
+            sex: 'male' as const,
+            age: 35,
+            symptoms: [{
+              id: firstSymptom.id,
+              reported: 'present' as const
+            }]
+          };
+          
+          const analysisResult = await analyzeSymptoms(mockRequest);
+          detectedConditions = analysisResult.conditions;
+          
+          if (analysisResult.triage) {
+            if (analysisResult.triage.level === 'emergency') {
+              urgency = 'high';
+            } else if (analysisResult.triage.level === 'consultation') {
+              urgency = 'medium';
+            } else {
+              urgency = 'low';
+            }
+          }
+          
+          if (isDietRelated) {
+            const dietRecommendations = getDietRecommendations(detectedConditions);
+            if (dietRecommendations.length > 0) {
+              dietRecommendation = dietRecommendations[0];
+              
+              const baseContent = `Based on your symptoms, I would recommend a ${dietRecommendation.title}. This diet focuses on foods that may help manage your potential condition. Would you like to see the complete diet plan?`;
+              content = await translate(baseContent);
+            }
+          } else {
+            const conditionsList = detectedConditions
+              .slice(0, 3)
+              .map(c => c.commonName)
+              .join(', ');
+              
+            const baseContent = `Based on your symptoms, you might be experiencing ${conditionsList}. ${analysisResult.triage?.description || ''}`;
+            content = await translate(baseContent);
+          }
+        }
+      } catch (error) {
+        console.error('Error analyzing symptoms:', error);
+      }
+    }
+    
+    if (!content) {
+      if (hasUrgentSymptoms || isAskingForHospital) {
+        urgency = 'high';
+        const baseContent = "I'm detecting symptoms that may require immediate medical attention. Please contact emergency services or go to the nearest emergency room immediately.";
+        content = await translate(baseContent);
+        showHospitalFinder = true;
+      } else if (hasModerateSymptoms || symptomMatches.length > 0) {
+        urgency = 'medium';
+        const baseContent = "The symptoms you've described may need medical attention. Would you like to use our symptom checker for more specific information?";
+        content = await translate(baseContent);
+        showHospitalFinder = lowerCaseMessage.includes('where') || lowerCaseMessage.includes('find');
+      } else if (isDietRelated) {
+        const baseContent = "I can provide diet recommendations based on your health needs. Could you please tell me about any symptoms or medical conditions you're experiencing?";
+        content = await translate(baseContent);
+      } else if (lowerCaseMessage.includes('symptom') || lowerCaseMessage.includes('sick') || lowerCaseMessage.includes('pain')) {
+        const baseContent = "I can help you check your symptoms. Could you please tell me more about what you're experiencing?";
+        content = await translate(baseContent);
+      } else if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hey')) {
+        const baseContent = "Hello! How can I assist you with your health today?";
+        content = await translate(baseContent);
+      } else if (lowerCaseMessage.includes('thank')) {
+        const baseContent = "You're welcome! Is there anything else I can help you with?";
+        content = await translate(baseContent);
+      } else if (lowerCaseMessage.includes('hospital') || lowerCaseMessage.includes('doctor') || lowerCaseMessage.includes('emergency')) {
+        const baseContent = "I can help you locate nearby hospitals or doctors. Would you like me to search for medical facilities in your area?";
+        content = await translate(baseContent);
+        showHospitalFinder = true;
+      } else {
+        const baseContent = "I understand you're looking for health information. Could you provide more details about your question or concern?";
+        content = await translate(baseContent);
+      }
     }
     
     return {
@@ -270,7 +337,9 @@ const ChatbotInterface: React.FC = () => {
       timestamp: new Date(),
       urgency,
       showHospitalFinder,
-      symptoms: extractedSymptoms
+      symptoms: extractedSymptoms,
+      detectedConditions,
+      dietRecommendation
     };
   };
 
@@ -316,6 +385,15 @@ const ChatbotInterface: React.FC = () => {
                   <HospitalFinder 
                     symptoms={message.symptoms} 
                     urgency={message.urgency}
+                  />
+                </div>
+              )}
+              
+              {!message.isUser && message.dietRecommendation && (
+                <div className="mb-4 max-w-[85%] mr-auto">
+                  <CompactDietRecommendation 
+                    diet={message.dietRecommendation}
+                    detectedConditions={message.detectedConditions}
                   />
                 </div>
               )}
@@ -379,6 +457,23 @@ const ChatbotInterface: React.FC = () => {
             <DialogTitle>Find Nearby Medical Facilities</DialogTitle>
           </DialogHeader>
           <HospitalFinder />
+        </DialogContent>
+      </Dialog>
+      
+      <Dialog>
+        <DialogTrigger asChild>
+          <Button
+            className="fixed bottom-8 left-24 bg-gradient-to-r from-green-500 to-teal-500 text-white rounded-full h-12 w-12 p-0 flex items-center justify-center shadow-highlight"
+            title="Diet Recommendations"
+          >
+            <Utensils size={20} />
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Diet Recommendations</DialogTitle>
+          </DialogHeader>
+          <DietRecommendations />
         </DialogContent>
       </Dialog>
     </div>
