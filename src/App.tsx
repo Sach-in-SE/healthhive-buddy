@@ -11,6 +11,7 @@ import About from "./pages/About";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 import LanguageSelector from "@/components/language/LanguageSelector";
+import LanguageIndicator from "@/components/language/LanguageIndicator"; 
 import "./styles/rtl.css";
 
 const App = () => {
@@ -25,6 +26,9 @@ const App = () => {
           <Sonner />
           <div className="fixed bottom-4 right-4 z-50">
             <LanguageSelector />
+          </div>
+          <div className="fixed top-4 right-4 z-50">
+            <LanguageIndicator />
           </div>
           <BrowserRouter>
             <Routes>
