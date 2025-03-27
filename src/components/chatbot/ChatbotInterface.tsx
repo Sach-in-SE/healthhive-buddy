@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, X, MessageSquare, AlertTriangle, Mic, Volume2, VolumeX, Globe, MapPin } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -8,6 +9,11 @@ import { initSpeechRecognition, speakText, isSpeaking, stopSpeaking } from '@/ut
 import HospitalFinder from '@/components/hospitals/HospitalFinder';
 import LanguageSelector from '@/components/language/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
+import {
+  getAvailableSymptoms,
+  analyzeSymptoms,
+  SymptomateSymptom
+} from '@/services/symptomate-api';
 import { 
   Dialog,
   DialogContent,
@@ -33,9 +39,26 @@ const ChatbotInterface: React.FC = () => {
   const [isListening, setIsListening] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
+  const [availableSymptoms, setAvailableSymptoms] = useState<SymptomateSymptom[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const { translate, currentLanguage } = useLanguage();
+
+  // Fetch available symptoms when language changes
+  useEffect(() => {
+    const fetchSymptoms = async () => {
+      try {
+        const apiLanguage = currentLanguage === 'en' ? 'en-gb' : 
+                            currentLanguage === 'es' ? 'es-es' : 'en-gb';
+        const symptoms = await getAvailableSymptoms(apiLanguage);
+        setAvailableSymptoms(symptoms);
+      } catch (error) {
+        console.error('Error fetching symptoms:', error);
+      }
+    };
+    
+    fetchSymptoms();
+  }, [currentLanguage]);
 
   useEffect(() => {
     const setWelcomeMessage = async () => {
@@ -147,16 +170,13 @@ const ChatbotInterface: React.FC = () => {
   };
 
   const extractSymptoms = (message: string): string[] => {
-    const symptomKeywords = [
-      'pain', 'ache', 'fever', 'cough', 'headache', 'nausea', 
-      'dizzy', 'tired', 'fatigue', 'weakness', 'rash', 'sore throat',
-      'chest', 'breathing', 'stomach', 'vomit', 'diarrhea', 'blood pressure',
-      'joint', 'muscle', 'back', 'neck', 'migraine', 'cold', 'flu'
-    ];
+    // Use the Symptomate API's symptoms for more accurate matching
+    if (!availableSymptoms.length) return [];
     
-    return symptomKeywords.filter(symptom => 
-      message.toLowerCase().includes(symptom)
-    );
+    const lowerCaseMessage = message.toLowerCase();
+    return availableSymptoms
+      .filter(symptom => lowerCaseMessage.includes(symptom.name.toLowerCase()))
+      .map(symptom => symptom.name);
   };
 
   const handleSendMessage = async (e: React.FormEvent) => {
@@ -196,9 +216,13 @@ const ChatbotInterface: React.FC = () => {
     let urgency: 'low' | 'medium' | 'high' | undefined = undefined;
     let showHospitalFinder = false;
     
+    // Improved symptom detection using Symptomate API data
+    const symptomMatches = availableSymptoms.filter(symptom => 
+      lowerCaseMessage.includes(symptom.name.toLowerCase())
+    );
+    
     const urgentSymptoms = ['chest pain', 'difficulty breathing', 'unconscious', 'seizure', 'stroke', 'severe bleeding', 'poisoning'];
     const moderateSymptoms = ['fever', 'persistent pain', 'vomiting', 'diarrhea', 'dehydration', 'infection'];
-    const mildSymptoms = ['headache', 'cold', 'cough', 'sore throat', 'runny nose', 'mild pain'];
     
     const isAskingForHospital = 
       lowerCaseMessage.includes('hospital') || 
@@ -209,22 +233,18 @@ const ChatbotInterface: React.FC = () => {
     
     const hasUrgentSymptoms = urgentSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
     const hasModerateSymptoms = moderateSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
-    const hasMildSymptoms = mildSymptoms.some(symptom => lowerCaseMessage.includes(symptom));
     
+    // Determine urgency based on symptoms
     if (hasUrgentSymptoms || isAskingForHospital) {
       urgency = 'high';
       const baseContent = "I'm detecting symptoms that may require immediate medical attention. Please contact emergency services or go to the nearest emergency room immediately.";
       content = await translate(baseContent);
       showHospitalFinder = true;
-    } else if (hasModerateSymptoms) {
+    } else if (hasModerateSymptoms || symptomMatches.length > 0) {
       urgency = 'medium';
-      const baseContent = "The symptoms you've described may need medical attention. Consider consulting with a healthcare provider soon. Would you like more information about your symptoms?";
+      const baseContent = "The symptoms you've described may need medical attention. Would you like to use our symptom checker for more specific information?";
       content = await translate(baseContent);
       showHospitalFinder = lowerCaseMessage.includes('where') || lowerCaseMessage.includes('find');
-    } else if (hasMildSymptoms) {
-      urgency = 'low';
-      const baseContent = "Based on what you've shared, your symptoms appear to be mild. Rest and self-care may help, but monitor your symptoms for changes. Would you like some self-care suggestions?";
-      content = await translate(baseContent);
     } else if (lowerCaseMessage.includes('symptom') || lowerCaseMessage.includes('sick') || lowerCaseMessage.includes('pain')) {
       const baseContent = "I can help you check your symptoms. Could you please tell me more about what you're experiencing?";
       content = await translate(baseContent);
