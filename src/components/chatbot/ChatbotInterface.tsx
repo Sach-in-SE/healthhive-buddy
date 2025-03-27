@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/dialog';
 import { getDietRecommendations, DietRecommendation } from '@/services/diet-recommendation';
 import CompactDietRecommendation from '@/components/diet/CompactDietRecommendation';
+import DietRecommendations from '@/components/diet/DietRecommendations';
 
 interface Message {
   id: string;
