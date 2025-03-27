@@ -146,7 +146,7 @@ export const analyzeSymptoms = async (
             commonName: 'Tension headache',
             probability: 0.85,
             specialisation: ['general-practice', 'neurology'],
-            description: 'A tension headache is generally a diffuse, mild to moderate pain that's often described as feeling like a tight band around your head.',
+            description: 'A tension headache is generally a diffuse, mild to moderate pain that\'s often described as feeling like a tight band around your head.',
             treatment: 'Over-the-counter pain relievers, stress management, adequate hydration, and proper rest.'
           },
           {
