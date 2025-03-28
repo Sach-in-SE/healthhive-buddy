@@ -1,14 +1,13 @@
 
 import React, { createContext, useState, useContext, useEffect } from 'react';
-import { getUserLanguage, translateText, availableLanguages, isRTL } from '@/utils/languageUtils';
+import { getUserLanguage, translateText, availableLanguages } from '@/utils/languageUtils';
 
 interface LanguageContextType {
   currentLanguage: string;
   setLanguage: (code: string) => void;
   translate: (text: string) => Promise<string>;
   isTranslating: boolean;
-  availableLanguages: { code: string; name: string; isRTL: boolean }[];
-  isRTL: boolean;
+  availableLanguages: { code: string; name: string }[];
 }
 
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
@@ -16,31 +15,17 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentLanguage, setCurrentLanguage] = useState(getUserLanguage());
   const [isTranslating, setIsTranslating] = useState(false);
-  const [rtl, setRtl] = useState(isRTL(currentLanguage));
 
   // Set initial language based on browser
   useEffect(() => {
     const savedLanguage = localStorage.getItem('preferredLanguage');
     if (savedLanguage) {
       setCurrentLanguage(savedLanguage);
-      setRtl(isRTL(savedLanguage));
     }
   }, []);
 
-  // Update document direction when RTL changes
-  useEffect(() => {
-    document.documentElement.dir = rtl ? 'rtl' : 'ltr';
-    // Add RTL class to body for additional styling
-    if (rtl) {
-      document.body.classList.add('rtl-layout');
-    } else {
-      document.body.classList.remove('rtl-layout');
-    }
-  }, [rtl]);
-
   const setLanguage = (code: string) => {
     setCurrentLanguage(code);
-    setRtl(isRTL(code));
     localStorage.setItem('preferredLanguage', code);
   };
 
@@ -68,8 +53,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setLanguage, 
         translate, 
         isTranslating,
-        availableLanguages,
-        isRTL: rtl
+        availableLanguages
       }}
     >
       {children}
