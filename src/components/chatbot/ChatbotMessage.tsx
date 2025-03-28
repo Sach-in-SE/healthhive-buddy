@@ -3,6 +3,8 @@ import React, { useEffect } from 'react';
 import { cn } from '@/lib/utils';
 import { AlertTriangle, Info, HelpCircle } from 'lucide-react';
 import { speakText } from '@/utils/voiceUtils';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 interface ChatbotMessageProps {
   content: string;
@@ -17,6 +19,9 @@ const ChatbotMessage: React.FC<ChatbotMessageProps> = ({
   timestamp,
   urgency
 }) => {
+  const { t } = useTranslation();
+  const { isRTL } = useLanguage();
+
   // Get background color based on urgency level
   const getUrgencyStyles = () => {
     if (!urgency || isUser) return '';
@@ -53,11 +58,11 @@ const ChatbotMessage: React.FC<ChatbotMessageProps> = ({
     
     switch (urgency) {
       case 'low':
-        return 'Mild Concern - Self Care Recommended';
+        return t('urgency.lowTitle');
       case 'medium':
-        return 'Moderate Concern - Medical Consultation Advised';
+        return t('urgency.mediumTitle');
       case 'high':
-        return 'Urgent Medical Attention Recommended';
+        return t('urgency.highTitle');
       default:
         return '';
     }

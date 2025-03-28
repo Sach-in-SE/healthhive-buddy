@@ -1,0 +1,14 @@
+
+{
+  "common": {
+    "language": "日本語",
+    "home": "ホーム",
+    "symptomChecker": "症状チェッカー",
+    "about": "私たちについて",
+    "signIn": "サインイン",
+    "findHospitals": "病院を探す"
+  },
+  "chatbot": {
+    "welcomeMessage": "こんにちは！私はあなたの健康アシスタントです。今日はどのようにお手伝いできますか？"
+  }
+}

@@ -1,0 +1,71 @@
+
+{
+  "common": {
+    "language": "English",
+    "home": "Home",
+    "symptomChecker": "Symptom Checker",
+    "about": "About",
+    "signIn": "Sign In",
+    "findHospitals": "Find Hospitals"
+  },
+  "hero": {
+    "title": "Your AI-Powered Health Assistant",
+    "description": "Get instant health insights, check your symptoms, and find personalized recommendations.",
+    "getStarted": "Get Started"
+  },
+  "chatbot": {
+    "welcomeMessage": "Hello! I'm your Health Assistant. How can I help you today?",
+    "placeholder": "Type your symptoms or questions...",
+    "listening": "Listening...",
+    "speakClearly": "Please speak clearly to input your symptoms.",
+    "urgentAttention": "Urgent medical attention may be required",
+    "contactProvider": "Please contact a healthcare provider immediately.",
+    "urgentMessage": "I'm detecting symptoms that may require immediate medical attention. Please contact emergency services or go to the nearest emergency room immediately.",
+    "moderateMessage": "The symptoms you've described may need medical attention. Consider consulting with a healthcare provider soon. Would you like more information about your symptoms?",
+    "mildMessage": "Based on what you've shared, your symptoms appear to be mild. Rest and self-care may help, but monitor your symptoms for changes. Would you like some self-care suggestions?",
+    "symptomHelp": "I can help you check your symptoms. Could you please tell me more about what you're experiencing?",
+    "greeting": "Hello! How can I assist you with your health today?",
+    "thankYou": "You're welcome! Is there anything else I can help you with?",
+    "hospitalSearch": "I can help you locate nearby hospitals or doctors. Would you like me to search for medical facilities in your area?",
+    "needMoreInfo": "I understand you're looking for health information. Could you provide more details about your question or concern?"
+  },
+  "symptomChecker": {
+    "title": "Symptom Checker",
+    "subtitle": "Describe your symptoms and get insights about possible conditions. Our AI-powered tool compares your symptoms with thousands of conditions to provide you with relevant information.",
+    "selectSymptoms": "Select your symptoms",
+    "searchPlaceholder": "Search for a symptom...",
+    "noSymptoms": "No symptoms found matching",
+    "selectedSymptoms": "Selected symptoms:",
+    "noSelected": "No symptoms selected yet.",
+    "useSearch": "Use the search bar above to add symptoms.",
+    "mild": "Mild",
+    "moderate": "Moderate",
+    "severe": "Severe",
+    "analyzeSymptoms": "Analyze Symptoms",
+    "analyzing": "Analyzing...",
+    "possibleConditions": "Possible Conditions",
+    "match": "match",
+    "recommendations": "Recommendations:",
+    "startNewCheck": "Start New Check",
+    "medicalDisclaimer": "Important: This is not a medical diagnosis. Please consult with a healthcare professional for proper medical advice."
+  },
+  "hospitals": {
+    "emergencyServices": "Emergency Medical Facilities Nearby",
+    "findFacilities": "Find Medical Facilities",
+    "recommendedSpecialist": "Based on your symptoms, we recommend consulting a",
+    "findEmergency": "Find Emergency Services Now",
+    "findNearby": "Find Nearby Hospitals",
+    "searching": "Finding medical facilities near you...",
+    "facilitiesFound": "Found nearby medical facilities",
+    "facilitiesNear": "facilities located near you.",
+    "locationDenied": "Location access denied",
+    "enableLocation": "Please enable location access in your browser settings.",
+    "viewMaps": "View on Maps",
+    "bookAppointment": "Book Appointment"
+  },
+  "urgency": {
+    "lowTitle": "Mild Concern - Self Care Recommended",
+    "mediumTitle": "Moderate Concern - Medical Consultation Advised",
+    "highTitle": "Urgent Medical Attention Recommended"
+  }
+}

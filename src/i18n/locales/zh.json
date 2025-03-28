@@ -1,0 +1,14 @@
+
+{
+  "common": {
+    "language": "中文",
+    "home": "首页",
+    "symptomChecker": "症状检查器",
+    "about": "关于我们",
+    "signIn": "登录",
+    "findHospitals": "查找医院"
+  },
+  "chatbot": {
+    "welcomeMessage": "你好！我是你的健康助手。今天我能帮你什么忙？"
+  }
+}

@@ -1,0 +1,71 @@
+
+{
+  "common": {
+    "language": "Español",
+    "home": "Inicio",
+    "symptomChecker": "Verificador de Síntomas",
+    "about": "Acerca de",
+    "signIn": "Iniciar Sesión",
+    "findHospitals": "Buscar Hospitales"
+  },
+  "hero": {
+    "title": "Tu Asistente de Salud con IA",
+    "description": "Obtén información instantánea de salud, verifica tus síntomas y encuentra recomendaciones personalizadas.",
+    "getStarted": "Comenzar"
+  },
+  "chatbot": {
+    "welcomeMessage": "¡Hola! Soy tu Asistente de Salud. ¿Cómo puedo ayudarte hoy?",
+    "placeholder": "Escribe tus síntomas o preguntas...",
+    "listening": "Escuchando...",
+    "speakClearly": "Por favor, habla claramente para ingresar tus síntomas.",
+    "urgentAttention": "Puede requerirse atención médica urgente",
+    "contactProvider": "Por favor, contacta a un proveedor de salud inmediatamente.",
+    "urgentMessage": "Estoy detectando síntomas que pueden requerir atención médica inmediata. Por favor, contacta a servicios de emergencia o dirígete a la sala de emergencias más cercana inmediatamente.",
+    "moderateMessage": "Los síntomas que has descrito pueden necesitar atención médica. Considera consultar con un profesional de la salud pronto. ¿Te gustaría más información sobre tus síntomas?",
+    "mildMessage": "Basado en lo que has compartido, tus síntomas parecen ser leves. El descanso y el autocuidado pueden ayudar, pero monitorea tus síntomas por cambios. ¿Quieres algunas sugerencias de autocuidado?",
+    "symptomHelp": "Puedo ayudarte a verificar tus síntomas. ¿Podrías contarme más sobre lo que estás experimentando?",
+    "greeting": "¡Hola! ¿Cómo puedo ayudarte con tu salud hoy?",
+    "thankYou": "¡De nada! ¿Hay algo más en lo que pueda ayudarte?",
+    "hospitalSearch": "Puedo ayudarte a localizar hospitales o médicos cercanos. ¿Te gustaría que busque centros médicos en tu área?",
+    "needMoreInfo": "Entiendo que estás buscando información de salud. ¿Podrías proporcionar más detalles sobre tu pregunta o preocupación?"
+  },
+  "symptomChecker": {
+    "title": "Verificador de Síntomas",
+    "subtitle": "Describe tus síntomas y obtén información sobre posibles condiciones. Nuestra herramienta potenciada por IA compara tus síntomas con miles de condiciones para proporcionarte información relevante.",
+    "selectSymptoms": "Selecciona tus síntomas",
+    "searchPlaceholder": "Buscar un síntoma...",
+    "noSymptoms": "No se encontraron síntomas que coincidan con",
+    "selectedSymptoms": "Síntomas seleccionados:",
+    "noSelected": "Aún no hay síntomas seleccionados.",
+    "useSearch": "Usa la barra de búsqueda de arriba para añadir síntomas.",
+    "mild": "Leve",
+    "moderate": "Moderado",
+    "severe": "Severo",
+    "analyzeSymptoms": "Analizar Síntomas",
+    "analyzing": "Analizando...",
+    "possibleConditions": "Condiciones Posibles",
+    "match": "coincidencia",
+    "recommendations": "Recomendaciones:",
+    "startNewCheck": "Iniciar Nuevo Chequeo",
+    "medicalDisclaimer": "Importante: Esto no es un diagnóstico médico. Por favor, consulta con un profesional de la salud para obtener un consejo médico adecuado."
+  },
+  "hospitals": {
+    "emergencyServices": "Servicios Médicos de Emergencia Cercanos",
+    "findFacilities": "Buscar Centros Médicos",
+    "recommendedSpecialist": "Basado en tus síntomas, recomendamos consultar a un",
+    "findEmergency": "Buscar Servicios de Emergencia Ahora",
+    "findNearby": "Buscar Hospitales Cercanos",
+    "searching": "Buscando centros médicos cerca de ti...",
+    "facilitiesFound": "Encontrados centros médicos cercanos",
+    "facilitiesNear": "instalaciones ubicadas cerca de ti.",
+    "locationDenied": "Acceso a ubicación denegado",
+    "enableLocation": "Por favor, habilita el acceso a la ubicación en la configuración de tu navegador.",
+    "viewMaps": "Ver en Mapas",
+    "bookAppointment": "Reservar Cita"
+  },
+  "urgency": {
+    "lowTitle": "Preocupación Leve - Se Recomienda Autocuidado",
+    "mediumTitle": "Preocupación Moderada - Se Aconseja Consulta Médica",
+    "highTitle": "Se Recomienda Atención Médica Urgente"
+  }
+}

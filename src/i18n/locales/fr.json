@@ -1,0 +1,14 @@
+
+{
+  "common": {
+    "language": "Français",
+    "home": "Accueil",
+    "symptomChecker": "Vérificateur de Symptômes",
+    "about": "À Propos",
+    "signIn": "Connexion",
+    "findHospitals": "Trouver des Hôpitaux"
+  },
+  "chatbot": {
+    "welcomeMessage": "Bonjour! Je suis votre assistant santé. Comment puis-je vous aider aujourd'hui?"
+  }
+}

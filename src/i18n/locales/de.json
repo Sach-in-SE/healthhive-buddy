@@ -1,0 +1,14 @@
+
+{
+  "common": {
+    "language": "Deutsch",
+    "home": "Startseite",
+    "symptomChecker": "Symptom-Checker",
+    "about": "Über Uns",
+    "signIn": "Anmelden",
+    "findHospitals": "Krankenhäuser finden"
+  },
+  "chatbot": {
+    "welcomeMessage": "Hallo! Ich bin Ihr Gesundheitsassistent. Wie kann ich Ihnen heute helfen?"
+  }
+}

@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useTranslation } from 'react-i18next';
 
 interface LanguageSelectorProps {
   variant?: 'minimal' | 'full';
@@ -19,7 +20,8 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
   variant = 'full',
   className = ''
 }) => {
-  const { currentLanguage, setLanguage, availableLanguages } = useLanguage();
+  const { currentLanguage, setLanguage, availableLanguages, isRTL } = useLanguage();
+  const { t } = useTranslation();
   
   const currentLanguageName = availableLanguages.find(
     lang => lang.code === currentLanguage
@@ -38,7 +40,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
         </Button>
       </DropdownMenuTrigger>
       
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className={isRTL ? 'rtl-menu' : ''}>
         {availableLanguages.map((language) => (
           <DropdownMenuItem
             key={language.code}
@@ -47,7 +49,7 @@ const LanguageSelector: React.FC<LanguageSelectorProps> = ({
           >
             {language.name}
             {currentLanguage === language.code && (
-              <span className="ml-2 text-blue-600">✓</span>
+              <span className={`${isRTL ? 'mr-2' : 'ml-2'} text-blue-600`}>✓</span>
             )}
           </DropdownMenuItem>
         ))}

@@ -11,6 +11,7 @@ import About from "./pages/About";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 import LanguageSelector from "@/components/language/LanguageSelector";
+import './i18n/i18n'; // Import i18n configuration
 
 const App = () => {
   // Create a new QueryClient instance inside the component

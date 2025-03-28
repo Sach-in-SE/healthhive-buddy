@@ -8,6 +8,7 @@ import { initSpeechRecognition, speakText, isSpeaking, stopSpeaking } from '@/ut
 import HospitalFinder from '@/components/hospitals/HospitalFinder';
 import LanguageSelector from '@/components/language/LanguageSelector';
 import { useLanguage } from '@/contexts/LanguageContext';
+import { useTranslation } from 'react-i18next';
 import { 
   Dialog,
   DialogContent,
@@ -35,22 +36,17 @@ const ChatbotInterface: React.FC = () => {
   const [recognition, setRecognition] = useState<SpeechRecognition | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
-  const { translate, currentLanguage } = useLanguage();
+  const { currentLanguage, isRTL } = useLanguage();
+  const { t } = useTranslation();
 
   useEffect(() => {
-    const setWelcomeMessage = async () => {
-      const welcomeContent = await translate("Hello! I'm your Health Assistant. How can I help you today?");
-      
-      setMessages([{
-        id: '1',
-        content: welcomeContent,
-        isUser: false,
-        timestamp: new Date(),
-      }]);
-    };
-    
-    setWelcomeMessage();
-  }, [currentLanguage, translate]);
+    setMessages([{
+      id: '1',
+      content: t('chatbot.welcomeMessage'),
+      isUser: false,
+      timestamp: new Date(),
+    }]);
+  }, [currentLanguage, t]);
 
   useEffect(() => {
     const recognitionInstance = initSpeechRecognition();
@@ -133,8 +129,8 @@ const ChatbotInterface: React.FC = () => {
       recognition.start();
       setIsListening(true);
       setInputValue('');
-      toast.info("Listening...", {
-        description: "Please speak clearly to input your symptoms.",
+      toast.info(t('chatbot.listening'), {
+        description: t('chatbot.speakClearly'),
       });
     }
   };
@@ -182,8 +178,8 @@ const ChatbotInterface: React.FC = () => {
       setMessages((prev) => [...prev, botResponse]);
       
       if (botResponse.urgency === 'high') {
-        toast.error("Urgent medical attention may be required", {
-          description: "Please contact a healthcare provider immediately.",
+        toast.error(t('chatbot.urgentAttention'), {
+          description: t('chatbot.contactProvider'),
           duration: 8000,
         });
       }
@@ -213,34 +209,26 @@ const ChatbotInterface: React.FC = () => {
     
     if (hasUrgentSymptoms || isAskingForHospital) {
       urgency = 'high';
-      const baseContent = "I'm detecting symptoms that may require immediate medical attention. Please contact emergency services or go to the nearest emergency room immediately.";
-      content = await translate(baseContent);
+      content = t('chatbot.urgentMessage');
       showHospitalFinder = true;
     } else if (hasModerateSymptoms) {
       urgency = 'medium';
-      const baseContent = "The symptoms you've described may need medical attention. Consider consulting with a healthcare provider soon. Would you like more information about your symptoms?";
-      content = await translate(baseContent);
+      content = t('chatbot.moderateMessage');
       showHospitalFinder = lowerCaseMessage.includes('where') || lowerCaseMessage.includes('find');
     } else if (hasMildSymptoms) {
       urgency = 'low';
-      const baseContent = "Based on what you've shared, your symptoms appear to be mild. Rest and self-care may help, but monitor your symptoms for changes. Would you like some self-care suggestions?";
-      content = await translate(baseContent);
+      content = t('chatbot.mildMessage');
     } else if (lowerCaseMessage.includes('symptom') || lowerCaseMessage.includes('sick') || lowerCaseMessage.includes('pain')) {
-      const baseContent = "I can help you check your symptoms. Could you please tell me more about what you're experiencing?";
-      content = await translate(baseContent);
+      content = t('chatbot.symptomHelp');
     } else if (lowerCaseMessage.includes('hello') || lowerCaseMessage.includes('hi') || lowerCaseMessage.includes('hey')) {
-      const baseContent = "Hello! How can I assist you with your health today?";
-      content = await translate(baseContent);
+      content = t('chatbot.greeting');
     } else if (lowerCaseMessage.includes('thank')) {
-      const baseContent = "You're welcome! Is there anything else I can help you with?";
-      content = await translate(baseContent);
+      content = t('chatbot.thankYou');
     } else if (lowerCaseMessage.includes('hospital') || lowerCaseMessage.includes('doctor') || lowerCaseMessage.includes('emergency')) {
-      const baseContent = "I can help you locate nearby hospitals or doctors. Would you like me to search for medical facilities in your area?";
-      content = await translate(baseContent);
+      content = t('chatbot.hospitalSearch');
       showHospitalFinder = true;
     } else {
-      const baseContent = "I understand you're looking for health information. Could you provide more details about your question or concern?";
-      content = await translate(baseContent);
+      content = t('chatbot.needMoreInfo');
     }
     
     return {
@@ -255,7 +243,7 @@ const ChatbotInterface: React.FC = () => {
   };
 
   return (
-    <div className="chatbot-container">
+    <div className="chatbot-container" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className={`chatbot-window ${isOpen ? 'visible' : 'hidden'}`}>
         <div className="health-gradient p-4 flex justify-between items-center">
           <h3 className="text-white font-medium">Health Assistant</h3>
@@ -312,7 +300,7 @@ const ChatbotInterface: React.FC = () => {
             <input
               ref={inputRef}
               type="text"
-              placeholder="Type your symptoms or questions..."
+              placeholder={t('chatbot.placeholder')}
               className="flex-1 px-4 py-2 rounded-full border border-gray-200 focus:outline-none focus:ring-2 focus:ring-health-400 focus:border-transparent text-sm"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
@@ -349,14 +337,14 @@ const ChatbotInterface: React.FC = () => {
         <DialogTrigger asChild>
           <Button
             className="fixed bottom-8 left-8 health-gradient rounded-full h-12 w-12 p-0 flex items-center justify-center shadow-highlight"
-            title="Find nearby hospitals"
+            title={t('common.findHospitals')}
           >
             <MapPin size={20} />
           </Button>
         </DialogTrigger>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>Find Nearby Medical Facilities</DialogTitle>
+            <DialogTitle>{t('hospitals.findFacilities')}</DialogTitle>
           </DialogHeader>
           <HospitalFinder />
         </DialogContent>
