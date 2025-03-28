@@ -1,9 +1,14 @@
 
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '@/contexts/LanguageContext';
 
 const Footer = () => {
+  const { t } = useTranslation();
+  const { isRTL } = useLanguage();
+  
   return (
-    <footer className="border-t border-gray-100 bg-gray-50/50 py-12 mt-24">
+    <footer className="border-t border-gray-100 bg-gray-50/50 py-12 mt-24" dir={isRTL ? 'rtl' : 'ltr'}>
       <div className="container mx-auto px-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
@@ -12,40 +17,40 @@ const Footer = () => {
               <span className="text-lg font-semibold">HealthAssist</span>
             </div>
             <p className="text-sm text-gray-500 max-w-xs">
-              Your personal AI health companion, providing intelligent insights and assistance for your well-being.
+              {t('footer.description', 'Your personal AI health companion, providing intelligent insights and assistance for your well-being.')}
             </p>
           </div>
           
           <div>
-            <h3 className="font-medium mb-4">Product</h3>
+            <h3 className="font-medium mb-4">{t('footer.product', 'Product')}</h3>
             <ul className="space-y-3">
-              <li><Link to="/symptoms" className="text-sm text-gray-500 hover:text-health-600 transition-colors">Symptom Checker</Link></li>
-              <li><Link to="/" className="text-sm text-gray-500 hover:text-health-600 transition-colors">Health Assistant</Link></li>
-              <li><Link to="/" className="text-sm text-gray-500 hover:text-health-600 transition-colors">Medication Reminders</Link></li>
+              <li><Link to="/symptoms" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('common.symptomChecker')}</Link></li>
+              <li><Link to="/" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('footer.healthAssistant', 'Health Assistant')}</Link></li>
+              <li><Link to="/" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('footer.medicationReminders', 'Medication Reminders')}</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="font-medium mb-4">Company</h3>
+            <h3 className="font-medium mb-4">{t('footer.company', 'Company')}</h3>
             <ul className="space-y-3">
-              <li><Link to="/about" className="text-sm text-gray-500 hover:text-health-600 transition-colors">About Us</Link></li>
-              <li><Link to="/" className="text-sm text-gray-500 hover:text-health-600 transition-colors">Privacy Policy</Link></li>
-              <li><Link to="/" className="text-sm text-gray-500 hover:text-health-600 transition-colors">Terms of Service</Link></li>
+              <li><Link to="/about" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('footer.aboutUs', 'About Us')}</Link></li>
+              <li><Link to="/" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('footer.privacy', 'Privacy Policy')}</Link></li>
+              <li><Link to="/" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('footer.terms', 'Terms of Service')}</Link></li>
             </ul>
           </div>
           
           <div>
-            <h3 className="font-medium mb-4">Connect</h3>
+            <h3 className="font-medium mb-4">{t('footer.connect', 'Connect')}</h3>
             <ul className="space-y-3">
-              <li><a href="#" className="text-sm text-gray-500 hover:text-health-600 transition-colors">Contact Us</a></li>
-              <li><a href="#" className="text-sm text-gray-500 hover:text-health-600 transition-colors">Support</a></li>
-              <li><a href="#" className="text-sm text-gray-500 hover:text-health-600 transition-colors">Feedback</a></li>
+              <li><a href="#" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('footer.contactUs', 'Contact Us')}</a></li>
+              <li><a href="#" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('footer.support', 'Support')}</a></li>
+              <li><a href="#" className="text-sm text-gray-500 hover:text-health-600 transition-colors">{t('footer.feedback', 'Feedback')}</a></li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-gray-100 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-sm text-gray-400">© {new Date().getFullYear()} HealthAssist. All rights reserved.</p>
+          <p className="text-sm text-gray-400">© {new Date().getFullYear()} HealthAssist. {t('footer.allRightsReserved', 'All rights reserved.')}</p>
           <div className="flex gap-6 mt-4 md:mt-0">
             <a href="#" className="text-gray-400 hover:text-health-600 transition-colors">
               <span className="sr-only">Twitter</span>

@@ -13,6 +13,21 @@
     "description": "Obtén información instantánea de salud, verifica tus síntomas y encuentra recomendaciones personalizadas.",
     "getStarted": "Comenzar"
   },
+  "footer": {
+    "description": "Tu compañero de salud AI personal, proporcionando información inteligente y asistencia para tu bienestar.",
+    "product": "Producto",
+    "healthAssistant": "Asistente de Salud",
+    "medicationReminders": "Recordatorios de Medicación",
+    "company": "Empresa",
+    "aboutUs": "Acerca de Nosotros",
+    "privacy": "Política de Privacidad",
+    "terms": "Términos de Servicio",
+    "connect": "Conectar",
+    "contactUs": "Contáctanos",
+    "support": "Soporte",
+    "feedback": "Comentarios",
+    "allRightsReserved": "Todos los derechos reservados."
+  },
   "chatbot": {
     "welcomeMessage": "¡Hola! Soy tu Asistente de Salud. ¿Cómo puedo ayudarte hoy?",
     "placeholder": "Escribe tus síntomas o preguntas...",

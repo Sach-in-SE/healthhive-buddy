@@ -13,6 +13,21 @@
     "description": "Get instant health insights, check your symptoms, and find personalized recommendations.",
     "getStarted": "Get Started"
   },
+  "footer": {
+    "description": "Your personal AI health companion, providing intelligent insights and assistance for your well-being.",
+    "product": "Product",
+    "healthAssistant": "Health Assistant",
+    "medicationReminders": "Medication Reminders",
+    "company": "Company",
+    "aboutUs": "About Us",
+    "privacy": "Privacy Policy",
+    "terms": "Terms of Service",
+    "connect": "Connect",
+    "contactUs": "Contact Us",
+    "support": "Support",
+    "feedback": "Feedback",
+    "allRightsReserved": "All rights reserved."
+  },
   "chatbot": {
     "welcomeMessage": "Hello! I'm your Health Assistant. How can I help you today?",
     "placeholder": "Type your symptoms or questions...",

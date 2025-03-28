@@ -10,7 +10,6 @@ import Symptoms from "./pages/Symptoms";
 import About from "./pages/About";
 import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
-import LanguageSelector from "@/components/language/LanguageSelector";
 import './i18n/i18n'; // Import i18n configuration
 import { useState } from "react";
 
@@ -24,9 +23,6 @@ const App = () => {
         <TooltipProvider>
           <Toaster />
           <Sonner />
-          <div className="fixed bottom-4 right-4 z-50">
-            <LanguageSelector />
-          </div>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<Index />} />
