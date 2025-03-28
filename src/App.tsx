@@ -12,10 +12,11 @@ import Community from "./pages/Community";
 import NotFound from "./pages/NotFound";
 import LanguageSelector from "@/components/language/LanguageSelector";
 import './i18n/i18n'; // Import i18n configuration
+import { useState } from "react";
 
 const App = () => {
-  // Create a new QueryClient instance inside the component
-  const queryClient = new QueryClient();
+  // Create a state variable to hold the QueryClient instead of creating it on every render
+  const [queryClient] = useState(() => new QueryClient());
   
   return (
     <QueryClientProvider client={queryClient}>
